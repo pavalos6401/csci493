@@ -1,13 +1,13 @@
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser
 from requests import Response, post
 from time import time
 from pandas import DataFrame
 import json
 
 
-start_total: float = time()
+start_total = time()
 # Command-line arguments for the script
-parser: ArgumentParser = ArgumentParser(
+parser = ArgumentParser(
     description="Retrieve Array of Things data.",
 )
 parser.add_argument(
@@ -26,18 +26,18 @@ parser.add_argument(
     default="env.temperature",
     help="name of data to retrieve, e.g. env.temperature",
 )
-args: Namespace = parser.parse_args()
+args = parser.parse_args()
 
 # URL to retrieve the Array of Things data
-url: str = "https://data.sagecontinuum.org/api/v1/query"
+url = "https://data.sagecontinuum.org/api/v1/query"
 
 # Headers, to retrieve the json data
-headers: dict[str, str] = {
+headers = {
     "Content-Type": "application/json",
 }
 
 # Filters for the data
-data: dict[str, str] = {
+data = {
     "start": args.start,
     "filter": {
         "name": args.name
@@ -46,21 +46,21 @@ data: dict[str, str] = {
 
 # Retrieve the data
 print(f"Retrieving {args.name} data from {args.start}")
-start: float = time()
+start = time()
 print()
-response: Response = post(
+response = post(
     url,
     headers=headers,
     data=json.dumps(data),
 )
-end: float = time()
+end = time()
 print(f"Time to retrieve data: {end - start} sec")
 
 # List of all the datasets as a dictionaries
-data_list: list[dict[str, str]] = []
+data_list = []
 
 # Convert the text to a list of json strings
-split_text: list[str] = response.text.split("\n")
+split_text = response.text.split("\n")
 # Remove the last element, which is a trailing whitespace
 del split_text[-1]
 
@@ -77,7 +77,7 @@ del split_text[-1]
 # Separate "meta" key (dictionary) into different keys
 # Remove unncecessary "name" key with the value "env.temperature"
 # Rename "value" key to "temp" for clarity
-start: float = time()
+start = time()
 for i in split_text:
     j = json.loads(i.replace('\\"', '"'))
     for key in j["meta"]:
@@ -87,7 +87,7 @@ for i in split_text:
     j.pop("name", None)
     j.pop("value", None)
     data_list.append(j)
-end: float = time()
+end = time()
 print(f"Time to clean data: {end - start} sec")
 
 # TODO The code below could be done simultaneously while cleaning the data
@@ -95,5 +95,5 @@ print(f"Time to clean data: {end - start} sec")
 df: DataFrame = DataFrame(data_list)
 # Dump the table into a csv file
 df.to_csv("data.csv", index=False)
-end_total: float = time()
+end_total = time()
 print(f"Total time: {end_total - start_total} sec")
