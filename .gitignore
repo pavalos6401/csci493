@@ -130,5 +130,6 @@ dmypy.json
 
 # Ignore data text file.
 *.data
+*.csv
 # Ignore personal class notes
 notes/class/*
