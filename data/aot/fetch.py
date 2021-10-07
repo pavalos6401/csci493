@@ -29,7 +29,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 # URL to retrieve the Array of Things data
-url = "https://data.sagecontinuum.org/api/v1/query"
+url = "http://data.sagecontinuum.org/api/v1/query"
 
 # Headers, to retrieve the json data
 headers = {
