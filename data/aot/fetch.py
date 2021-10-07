@@ -1,7 +1,12 @@
 import requests
 import json
 import pandas as pd
+from time import time
 
+
+# Start time for the data retrieval
+start_data: str = "-1h"
+print(f"Retrieving data using {start_data} as start")
 
 # URL to retrieve the Array of Things data
 url: str = "https://data.sagecontinuum.org/api/v1/query"
@@ -13,18 +18,22 @@ headers: dict[str, str] = {
 
 # Filters for the data
 data: dict[str, str] = {
-    "start": "-1h",
+    "start": start_data,
     "filter": {
         "name": "env.temperature"
     }
 }
 
 # Retrieve the data
+start: float = time()
+print()
 response: requests.Response = requests.post(
     url,
     headers=headers,
     data=json.dumps(data),
 )
+end: float = time()
+print(f"Time to retrieve data: {end - start}sec")
 
 # List of all the datasets as a dictionaries
 data_list: list[dict[str, str]] = []
@@ -38,6 +47,7 @@ del split_text[-1]
 # Separate "meta" key (dictionary) into different keys
 # Remove unncecessary "name" key with the value "env.temperature"
 # Rename "value" key to "temp" for clarity
+start: float = time()
 for i in split_text:
     j = json.loads(i.replace('\\"', '"'))
     for key in ["host", "job", "node", "plugin", "sensor", "task", "vsn"]:
@@ -47,6 +57,8 @@ for i in split_text:
     j.pop("name", None)
     j.pop("value", None)
     data_list.append(j)
+end: float = time()
+print(f"Time to clean data: {end - start}sec")
 
 # Convert the above data to a dataframe (table)
 df: pd.DataFrame = pd.DataFrame(data_list)
