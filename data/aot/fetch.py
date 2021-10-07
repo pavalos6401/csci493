@@ -45,7 +45,7 @@ data: dict[str, str] = {
 }
 
 # Retrieve the data
-print(f"Retrieving {args.name} data using {args.start} as start")
+print(f"Retrieving {args.name} data from {args.start}")
 start: float = time()
 print()
 response: Response = post(
@@ -61,7 +61,7 @@ data_list: list[dict[str, str]] = []
 
 # Convert the text to a list of json strings
 split_text: list[str] = response.text.split("\n")
-# Remove the last element, which is a trialing whitespace
+# Remove the last element, which is a trailing whitespace
 del split_text[-1]
 
 # Save the first one as a sample of the data to be used
@@ -90,6 +90,7 @@ for i in split_text:
 end: float = time()
 print(f"Time to clean data: {end - start} sec")
 
+# TODO The code below could be done simultaneously while cleaning the data
 # Convert the above data to a dataframe (table)
 df: DataFrame = DataFrame(data_list)
 # Dump the table into a csv file
