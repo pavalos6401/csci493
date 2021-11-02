@@ -8,11 +8,11 @@ from time import time
 import requests
 
 DATA_CHOICES = [
-    "latest",
     "temp1",
     "temp2",
     "humidity",
     "pressure",
+    "latest",
 ]
 
 parser = ArgumentParser(
@@ -30,14 +30,17 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-URL = (
-    "http://www.mcs.anl.gov/research/projects/waggle/downloads/datasets/"
-    f"slices/AoT_Chicago.complete.{args.data}.tar.gz"
-)
-TARGET_PATH = f"{args.data}.tar.gz"
+URL = "http://www.mcs.anl.gov/research/projects/waggle/downloads/datasets/"
+TARGET_PATH = ""
+if args.data == "latest":
+    URL += f"AoT_Chicago.complete.{args.data}.tar"
+    TARGET_PATH = f"{args.data}.tar"
+else:
+    URL += f"slices/AoT_Chicago.complete.{args.data}.tar.gz"
+    TARGET_PATH = f"{args.data}.tar.gz"
 
-print()
-print(URL)
+print(f"url: {URL}")
+print(f"store to: {TARGET_PATH}")
 
 start = time()
 response = requests.get(URL, stream=True)
@@ -49,7 +52,7 @@ if response.status_code == 200:  # 200 means the request succeeded
         f.write(response.raw.read())
 
     end = time()
-    print(f"Time to get tar.gz: {end - start}sec")
+    print(f"Time to get compressed file: {end - start}sec")
 
     start = time()
     # Uncompress tar file
