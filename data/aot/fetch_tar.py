@@ -74,6 +74,6 @@ if response.status_code == 200:  # 200 means the request succeeded
         result_df = chunk_df[chunk_df["node_id"].isin(selected.keys())]
         result_df["vsn"] = result_df["node_id"].map(selected)
         result_df.to_csv(f"AoT_Chicago.complete.{args.data}/data.csv",
-                         mode="a")
+                         mode="a", header=False)
     end = time()
     print(f"time to clean data: {end - start}sec")
