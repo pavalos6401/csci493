@@ -5,11 +5,12 @@
 from argparse import ArgumentParser
 import tarfile
 from time import time
+import pandas as pd
 import requests
 
 DATA_CHOICES = [
-    "temp1",
     "temp2",
+    "temp1",
     "humidity",
     "pressure",
     "latest",
@@ -28,7 +29,6 @@ parser.add_argument(
     help=f"data to retrieve, options: {DATA_CHOICES}, default: {DATA_CHOICES[0]}",
 )
 args = parser.parse_args()
-
 
 URL = "http://www.mcs.anl.gov/research/projects/waggle/downloads/datasets/"
 TARGET_PATH = ""
@@ -55,9 +55,20 @@ if response.status_code == 200:  # 200 means the request succeeded
     print(f"Time to get compressed file: {end - start}sec")
 
     start = time()
-    # Uncompress tar file
     with tarfile.open(TARGET_PATH) as tar:
         tar.extractall(".")
-
     end = time()
-    print(f"Time to uncompress tar.gz: {end - start}sec")
+    print(f"Time to uncompress file: {end - start}sec");
+
+    start = time()
+    reader = pd.read_csv(f"AoT_Chicago.complete.{args.data}/data.csv.gz",
+                         compression="gzip", parse_dates=True, chunksize=10000)
+
+    selected = pd.read_csv("selected_nodes.csv", index_col=0, squeeze=True).to_dict()
+    for chunk_df in reader:
+        chunk_df = chunk_df.drop(columns=["subsystem", "sensor", "parameter"])
+        result_df = chunk_df[chunk_df["node_id"].isin(selected.keys())]
+        result_df["vsn"] = result_df["node_id"].map(selected)
+        result_df.to_csv(f"AoT_Chicago.complete.{args.data}/data.csv", mode="a")
+    end = time()
+    print(f"Time to clean data: {end - start}sec")
