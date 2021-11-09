@@ -44,23 +44,25 @@ else:
 print(f"url: {URL}")
 print(f"store to: {TARGET_PATH}")
 
+print("requesting compressed file...")
 start = time()
 response = requests.get(URL, stream=True)
 print(f"status code: {response.status_code}")
 
 if response.status_code == 200:  # 200 means the request succeeded
-    # Write the tar (compressed file)
     with open(TARGET_PATH, "wb") as f:
         f.write(response.raw.read())
     end = time()
-    print(f"Time to get compressed file: {end - start}sec")
+    print(f"time to get compressed file: {end - start}sec")
 
+    print("uncompressing file...")
     start = time()
     with tarfile.open(TARGET_PATH) as tar:
         tar.extractall(".")
     end = time()
-    print(f"Time to uncompress file: {end - start}sec")
+    print(f"time to uncompress file: {end - start}sec")
 
+    print("cleaning data...")
     start = time()
     reader = pd.read_csv(f"AoT_Chicago.complete.{args.data}/data.csv.gz",
                          compression="gzip", parse_dates=True, chunksize=10000)
@@ -74,4 +76,4 @@ if response.status_code == 200:  # 200 means the request succeeded
         result_df.to_csv(f"AoT_Chicago.complete.{args.data}/data.csv",
                          mode="a")
     end = time()
-    print(f"Time to clean data: {end - start}sec")
+    print(f"time to clean data: {end - start}sec")
