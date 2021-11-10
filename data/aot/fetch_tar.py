@@ -60,7 +60,7 @@ if not (exists(f"./{FOL_PATH}/data.csv.gz") and args.skip):
 
     if response.status_code == 200:  # 200 means the request succeeded
         with open(TAR_PATH, "wb") as f:
-            for chunk in response.iter_content(chunk_size=128):
+            for chunk in response.iter_content(chunk_size=2048):
                 f.write(chunk)
         end = time()
         print(f"time to get compressed file: {end - start}sec")
@@ -85,6 +85,7 @@ lat_dict = pd.read_csv(f"AoT_Chicago.complete.{args.data}/nodes.csv",
 lon_dict = pd.read_csv(f"AoT_Chicago.complete.{args.data}/nodes.csv",
                        usecols=["vsn", "lon"], index_col=0,
                        squeeze=True).to_dict()
+first = True
 for chunk_df in reader:
     chunk_df = chunk_df.drop(
         columns=["subsystem", "sensor", "parameter", "value_raw"]
@@ -94,6 +95,7 @@ for chunk_df in reader:
     result_df["lat"] = result_df["vsn"].map(lat_dict)
     result_df["lon"] = result_df["vsn"].map(lon_dict)
     result_df.to_csv(f"AoT_Chicago.complete.{args.data}/data.csv",
-                     mode="a", header=False)
+                     mode="a", header=first)
+    first = False
 end = time()
 print(f"time to clean data: {end - start}sec")
