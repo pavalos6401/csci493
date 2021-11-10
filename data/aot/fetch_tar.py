@@ -60,7 +60,8 @@ if not (exists(f"./{FOL_PATH}/data.csv.gz") and args.skip):
 
     if response.status_code == 200:  # 200 means the request succeeded
         with open(TAR_PATH, "wb") as f:
-            f.write(response.raw.read())
+            for chunk in response.iter_content(chunk_size=128):
+                f.write(chunk)
         end = time()
         print(f"time to get compressed file: {end - start}sec")
 
