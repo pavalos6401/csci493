@@ -94,7 +94,7 @@ for chunk_df in reader:
     result_df["vsn"] = result_df["node_id"].map(selected)
     result_df["lat"] = result_df["vsn"].map(lat_dict)
     result_df["lon"] = result_df["vsn"].map(lon_dict)
-    result_df.to_csv(f"AoT_Chicago.complete.{args.data}/data.csv",
+    result_df.to_csv(f"{FOL_PATH}/data.csv",
                      mode="a", header=first)
     first = False
 end = time()
