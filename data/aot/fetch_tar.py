@@ -4,11 +4,13 @@
 
 
 from argparse import ArgumentParser
-import tarfile
+from datetime import date
+from os.path import exists
+from tarfile import open as taropen
 from time import time
+
 import pandas as pd
 import requests
-from os.path import exists
 
 
 DATA_CHOICES = [
@@ -18,6 +20,7 @@ DATA_CHOICES = [
     "pressure",
     "latest",
 ]
+DATA_DEFAULT = DATA_CHOICES[0]
 
 parser = ArgumentParser(
     description="retrieve historical data from the array of things archive",
@@ -28,8 +31,8 @@ parser.add_argument(
     type=str,
     required=False,
     choices=DATA_CHOICES,
-    default=DATA_CHOICES[0],
-    help=f"data to retrieve, options: {DATA_CHOICES}, default: {DATA_CHOICES[0]}",
+    default=DATA_DEFAULT,
+    help=f"data to retrieve, options: {DATA_CHOICES}, default: {DATA_DEFAULT}",
 )
 parser.add_argument(
     "--skip",
@@ -39,12 +42,13 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-FOL_PATH = f"AoT_Chicago.complete.{args.data}"
 URL = "http://www.mcs.anl.gov/research/projects/waggle/downloads/datasets/"
 TAR_PATH = ""
+FOL_PATH = f"AoT_Chicago.complete.{args.data}"
 if args.data == "latest":
     URL += f"{FOL_PATH}.tar"
     TAR_PATH = f"{args.data}.tar"
+    FOL_PATH += f".{date.today()}"
 else:
     URL += f"slices/{FOL_PATH}.tar.gz"
     TAR_PATH = f"{args.data}.tar.gz"
@@ -67,15 +71,17 @@ if not (exists(f"./{FOL_PATH}/data.csv.gz") and args.skip):
 
         print("uncompressing file...")
         start = time()
-        with tarfile.open(TAR_PATH) as tar:
+        with taropen(TAR_PATH) as tar:
             tar.extractall(".")
         end = time()
         print(f"time to uncompress file: {end - start}sec")
+    else:
+        exit(response.status_code)
 
 print("cleaning data...")
 start = time()
-reader = pd.read_csv(f"{FOL_PATH}/data.csv.gz",
-                     compression="gzip", parse_dates=True, chunksize=10000)
+reader = pd.read_csv(f"{FOL_PATH}/data.csv.gz", compression="gzip",
+                     parse_dates=True, chunksize=10000)
 # Dictionary of node_id to vsn
 selected = pd.read_csv("selected_nodes.csv", index_col=0, squeeze=True,
                        usecols=["node_id", "vsn"]).to_dict()
@@ -94,8 +100,7 @@ for chunk_df in reader:
     result_df["vsn"] = result_df["node_id"].map(selected)
     result_df["lat"] = result_df["vsn"].map(lat_dict)
     result_df["lon"] = result_df["vsn"].map(lon_dict)
-    result_df.to_csv(f"{FOL_PATH}/data.csv",
-                     mode="a", header=first)
+    result_df.to_csv(f"{FOL_PATH}/data.csv", mode="a", header=first)
     first = False
 end = time()
 print(f"time to clean data: {end - start}sec")
