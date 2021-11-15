@@ -80,27 +80,34 @@ if not (exists(f"./{FOL_PATH}/data.csv.gz") and args.skip):
 
 print("cleaning data...")
 start = time()
-reader = pd.read_csv(f"{FOL_PATH}/data.csv.gz", compression="gzip",
-                     parse_dates=True, chunksize=10000)
+reader = pd.read_csv(
+    f"{FOL_PATH}/data.csv.gz", compression="gzip", parse_dates=True,
+    chunksize=10000
+)
 # Dictionary of node_id to vsn
-selected = pd.read_csv("selected_nodes.csv", index_col=0, squeeze=True,
-                       usecols=["node_id", "vsn"]).to_dict()
-lat_dict = pd.read_csv(f"AoT_Chicago.complete.{args.data}/nodes.csv",
-                       usecols=["vsn", "lat"], index_col=0,
-                       squeeze=True).to_dict()
-lon_dict = pd.read_csv(f"AoT_Chicago.complete.{args.data}/nodes.csv",
-                       usecols=["vsn", "lon"], index_col=0,
-                       squeeze=True).to_dict()
+selected = pd.read_csv(
+    "selected_nodes.csv", index_col=0, squeeze=True, usecols=["node_id", "vsn"]
+).to_dict()
+lat_dict = pd.read_csv(
+    f"AoT_Chicago.complete.{args.data}/nodes.csv", usecols=["vsn", "lat"],
+    index_col=0, squeeze=True
+).to_dict()
+lon_dict = pd.read_csv(
+    f"AoT_Chicago.complete.{args.data}/nodes.csv", usecols=["vsn", "lon"],
+    index_col=0, squeeze=True
+).to_dict()
 first = True
 for chunk_df in reader:
-    chunk_df = chunk_df.drop(
-        columns=["subsystem", "sensor", "parameter", "value_raw"]
+    chunk_df.drop(
+        columns=["subsystem", "sensor", "parameter", "value_raw"], inplace=True
     )
     result_df = chunk_df[chunk_df["node_id"].isin(selected.keys())]
     result_df["vsn"] = result_df["node_id"].map(selected)
     result_df["lat"] = result_df["vsn"].map(lat_dict)
     result_df["lon"] = result_df["vsn"].map(lon_dict)
-    result_df.to_csv(f"{FOL_PATH}/data.csv", mode="a", header=first)
+    result_df.to_csv(
+        f"{FOL_PATH}/data.csv", mode="a", index=False, header=first
+    )
     first = False
 end = time()
 print(f"time to clean data: {end - start}sec")
