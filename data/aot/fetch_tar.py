@@ -6,7 +6,7 @@
 from argparse import ArgumentParser
 from datetime import date
 from os.path import exists
-from tarfile import open as taropen
+import tarfile
 from time import time
 
 import pandas as pd
@@ -23,7 +23,7 @@ DATA_CHOICES = [
 DATA_DEFAULT = DATA_CHOICES[0]
 
 parser = ArgumentParser(
-    description="retrieve historical data from the array of things archive",
+    description="retrieve historical data from the array of things archive"
 )
 parser.add_argument(
     "--data",
@@ -71,7 +71,7 @@ if not (exists(f"./{FOL_PATH}/data.csv.gz") and args.skip):
 
         print("uncompressing file...")
         start = time()
-        with taropen(TAR_PATH) as tar:
+        with tarfile.open(TAR_PATH) as tar:
             tar.extractall(".")
         end = time()
         print(f"time to uncompress file: {end - start}sec")
