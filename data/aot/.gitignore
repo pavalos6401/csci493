@@ -1,3 +1,4 @@
-AoT_Chicago.complete.temp2/
+AoT_Chicago.complete.*/
 notes.md
-temp2.tar.gz
+*.tar.gz
+*.tar
