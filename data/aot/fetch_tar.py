@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-"""Request data from the array of things archive/historical data."""
+"""
+Request data from the array of things archive/historical data.
+"""
 
 
 from argparse import ArgumentParser

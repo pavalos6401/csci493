@@ -40,8 +40,8 @@ parser.add_argument(
     choices=DATA_CHOICES,
     default=DATA_DEFAULT,
     help=(
-        f"data to normalize, options: {DATA_CHOICES}, default: {DATA_DEFAULT}",
-    )
+        f"data to normalize, options: {DATA_CHOICES}, default: {DATA_DEFAULT}"
+    ),
 )
 args = parser.parse_args()
 
