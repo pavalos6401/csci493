@@ -84,8 +84,10 @@ def main():
     print(f"normalizing {args.data} data...")
     for vsn in vsns:
         df = generate_template()
-        print(df.head())
-        print(df.tail())
+        # TODO: Fill in the blanks
+        #  print(df.head())
+        #  print(df.tail())
+        # TODO: Save to node/{vsn}.csv
         exit()
 
 
