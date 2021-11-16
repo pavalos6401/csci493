@@ -17,33 +17,37 @@ import numpy as np
 import pandas as pd
 
 
-# Command-line argument options
-DATA_CHOICES = [
-    "temp2",
-    "temp1",
-    "humidity",
-    "pressure",
-    "latest",
-]
-DATA_DEFAULT = DATA_CHOICES[0]
+def parse_args():
+    """
+    Parse arguments given to the script.
 
+    Returns:
+        argparse.Namespace: Namespace for the parsed arguments.
+    """
 
-# Command-line arguments
-parser = ArgumentParser(
-    description="normalize csv to specific time intervals"
-)
-parser.add_argument(
-    "--data",
-    metavar="D",
-    type=str,
-    required=False,
-    choices=DATA_CHOICES,
-    default=DATA_DEFAULT,
-    help=(
-        f"data to normalize, options: {DATA_CHOICES}, default: {DATA_DEFAULT}"
-    ),
-)
-args = parser.parse_args()
+    DATA_CHOICES = [
+        "temp2",
+        "temp1",
+        "humidity",
+        "pressure",
+        "latest",
+    ]
+    DATA_DEFAULT = DATA_CHOICES[0]
+
+    parser = ArgumentParser(
+        description="normalize csv to specific time intervals"
+    )
+    parser.add_argument(
+        "--data",
+        metavar="D",
+        type=str,
+        required=False,
+        choices=DATA_CHOICES,
+        default=DATA_DEFAULT,
+        help=f"data to normalize: {DATA_CHOICES}, default: {DATA_DEFAULT}",
+    )
+
+    return parser.parse_args()
 
 
 def generate_template(start="2018/01/01", end="2020/04/03", freq="0.5H"):
@@ -51,13 +55,13 @@ def generate_template(start="2018/01/01", end="2020/04/03", freq="0.5H"):
     Generate a template dataframe for a single node's data.
 
     Parameters:
-        start (str): start date for the data, inclusive
-        end (str): end date for the data, inclusive
-        freq (str): time intervals
+        start (str): Start date for the data, inclusive.
+        end (str): End date for the data, inclusive.
+        freq (str): Time intervals.
 
     Returns:
         pd.DataFrame: Template for the dataframe of any node's temperature data
-        with given intervals.
+        with given time intervals.
     """
 
     date_rng = pd.date_range(start=start, end=end, freq=freq)
@@ -66,7 +70,24 @@ def generate_template(start="2018/01/01", end="2020/04/03", freq="0.5H"):
     return df
 
 
+def main():
+    """
+    Main entrypoint of the program.
+    """
+
+    args = parse_args()
+
+    vsns = pd.read_csv(
+        "selected_nodes.csv", usecols=["vsn"], squeeze=True
+    ).to_list()
+
+    print(f"normalizing {args.data} data...")
+    for vsn in vsns:
+        df = generate_template()
+        print(df.head())
+        print(df.tail())
+        exit()
+
+
 if __name__ == "__main__":
-    df = generate_template()
-    print(df.head())
-    print(df.tail())
+    main()
