@@ -10,10 +10,9 @@ https://towardsdatascience.com/basic-time-series-manipulation-with-pandas-4432af
 """
 
 
-from argparse import ArgumentParser
-from datetime import datetime
+import argparse
+import datetime
 
-import numpy as np
 import pandas as pd
 
 
@@ -25,16 +24,16 @@ def parse_args():
         argparse.Namespace: Namespace for the parsed arguments.
     """
 
-    DATA_CHOICES = [
+    CHOICES = [
         "temp2",
         "temp1",
         "humidity",
         "pressure",
         "latest",
     ]
-    DATA_DEFAULT = DATA_CHOICES[0]
+    DEFAULT = CHOICES[0]
 
-    parser = ArgumentParser(
+    parser = argparse.ArgumentParser(
         description="normalize csv to specific time intervals"
     )
     parser.add_argument(
@@ -42,15 +41,39 @@ def parse_args():
         metavar="D",
         type=str,
         required=False,
-        choices=DATA_CHOICES,
-        default=DATA_DEFAULT,
-        help=f"data to normalize: {DATA_CHOICES}, default: {DATA_DEFAULT}",
+        choices=CHOICES,
+        default=DEFAULT,
+        help=f"data to normalize: {CHOICES}; default: {DEFAULT}",
+    )
+    parser.add_argument(
+        "--start",
+        metavar="S",
+        type=str,
+        required=False,
+        default="2018/01/01",
+        help="start date for the data",
+    )
+    parser.add_argument(
+        "--end",
+        metavar="E",
+        type=str,
+        required=False,
+        default="2020/04/03",
+        help="end date for the data",
+    )
+    parser.add_argument(
+        "--freq",
+        metavar="F",
+        type=str,
+        required=False,
+        default="0.5H",
+        help="time intervals for the data",
     )
 
     return parser.parse_args()
 
 
-def generate_template(start="2018/01/01", end="2020/04/03", freq="0.5H"):
+def generate_template(start, end, freq):
     """
     Generate a template dataframe for a single node's data.
 
@@ -66,8 +89,28 @@ def generate_template(start="2018/01/01", end="2020/04/03", freq="0.5H"):
 
     date_rng = pd.date_range(start=start, end=end, freq=freq)
     df = pd.DataFrame(date_rng, columns=["date"])
-    df["data"] = np.random.randint(-5, 100, size=(len(date_rng)))
+    df["data"] = None
     return df
+
+
+def fill_template(vsn, temp_df, data_df):
+    """
+    Fills in a given dataframe with the node's data.
+
+    Parameters:
+        vsn (str): Node number to use for the data.
+        temp_df (pd.DataFrame): Template dataframe.
+        data_df (pd.DataFrame): Data dataframe.
+    """
+
+    vsn_df = data_df[data_df["vsn"] == vsn]
+    vsn_df.reset_index(drop=True, inplace=True)
+
+    for d in temp_df["date"]:
+        approx = min(vsn_df["data.csv"], key=lambda sub: abs(sub - d))
+        i = vsn_df[vsn_df["data.csv"] == approx].index[0]
+        temp_df.loc[lambda df: df["date"] == d, "data"] = vsn_df.iat[i, 2]
+        #  temp_df[temp_df["date"] == d]["data"] = vsn_df.iat[i, 2]
 
 
 def main():
@@ -80,15 +123,22 @@ def main():
     vsns = pd.read_csv(
         "selected_nodes.csv", usecols=["vsn"], squeeze=True
     ).to_list()
+    data_df = pd.read_csv(
+        f"AoT_Chicago.complete.{args.data}"
+        f"{f'.{datetime.date.today()}' if args.data == 'latest' else ''}"
+        "/data.csv",
+    )
+    data_df["data.csv"] = pd.to_datetime(
+        data_df["data.csv"], format="%Y/%m/%d %H:%M:%S"
+    )
 
     print(f"normalizing {args.data} data...")
     for vsn in vsns:
-        df = generate_template()
-        # TODO: Fill in the blanks
-        #  print(df.head())
-        #  print(df.tail())
-        # TODO: Save to node/{vsn}.csv
-        exit()
+        df = generate_template(args.start, args.end, args.freq)
+        fill_template(vsn, df, data_df)
+        df.to_csv(f"nodes/node-{vsn}.csv")
+        print(f"Node {vsn} done")
+    print("done")
 
 
 if __name__ == "__main__":
