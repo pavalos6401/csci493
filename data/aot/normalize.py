@@ -107,10 +107,13 @@ def fill_template(vsn, temp_df, data_df):
     vsn_df.reset_index(drop=True, inplace=True)
 
     for d in temp_df["date"]:
-        approx = min(vsn_df["data.csv"], key=lambda sub: abs(sub - d))
-        i = vsn_df[vsn_df["data.csv"] == approx].index[0]
-        temp_df.loc[lambda df: df["date"] == d, "data"] = vsn_df.iat[i, 2]
-        #  temp_df[temp_df["date"] == d]["data"] = vsn_df.iat[i, 2]
+        try:
+            approx = min(vsn_df["data.csv"], key=lambda sub: abs(sub - d))
+            i = vsn_df[vsn_df["data.csv"] == approx].index[0]
+            temp_df.loc[lambda df: df["date"] == d, "data"] = vsn_df.iat[i, 2]
+            #  temp_df[temp_df["date"] == d]["data"] = vsn_df.iat[i, 2]
+        except:
+            break
 
 
 def main():
@@ -119,25 +122,33 @@ def main():
     """
 
     args = parse_args()
+    # Store the arguments used for the combine script
+    with open("nodes/args.csv", "w") as f:
+        f.write("data,start,end,freq\n")
+        f.write(f"{args.data},{args.start},{args.end},{args.freq}")
 
+    # List of vsns to be used
     vsns = pd.read_csv(
         "selected_nodes.csv", usecols=["vsn"], squeeze=True
     ).to_list()
+    # Data csv file
     data_df = pd.read_csv(
         f"AoT_Chicago.complete.{args.data}"
         f"{f'.{datetime.date.today()}' if args.data == 'latest' else ''}"
         "/data.csv",
     )
+    # Parse the dates into datetime format
     data_df["data.csv"] = pd.to_datetime(
         data_df["data.csv"], format="%Y/%m/%d %H:%M:%S"
     )
 
     print(f"normalizing {args.data} data...")
     for vsn in vsns:
+        print(f"Node {vsn}...", end="")
         df = generate_template(args.start, args.end, args.freq)
         fill_template(vsn, df, data_df)
         df.to_csv(f"nodes/node-{vsn}.csv")
-        print(f"Node {vsn} done")
+        print(" done")
     print("done")
 
 
