@@ -4,7 +4,7 @@
 Combine node data into a single csv file.
 
 This csv file will have the following columns:
-    node_id,vsn,lat,lon,[date],[...]
+    node_id,vsn,lat,lon,temp[i],[...]
 """
 
 
@@ -37,16 +37,17 @@ def main():
         )
         vsn_dfs[vsn] = tmp
 
-
+    i = 0
     for d in date_rng:
         print(f"Date {d} ... ", end="")
 
-        df[d] = "NaN"
+        df[f"temp{i}"] = "NaN"
         for vsn in vsns:
             node_meta = nodes_meta[nodes_meta["vsn"] == vsn]
             vsn_df = vsn_dfs[vsn]
             temp = vsn_df.loc[vsn_df["date"] == d]["data"]
-            df.at[df["vsn"] == vsn, d] = temp.iloc[-1]
+            df.at[df["vsn"] == vsn, f"temp{i}"] = f"{d}: {temp.iloc[-1]}"
+        i += 1
 
         print("Done")
 
