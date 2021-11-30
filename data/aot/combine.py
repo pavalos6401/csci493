@@ -19,7 +19,7 @@ def main():
     # Output DataFrame
     df = pd.read_csv("selected_nodes.csv")
 
-    # Arguments used when normalizing the data
+    # Arguments used when normalizing the data (when normalize.py was run)
     args_df = pd.read_csv("nodes/args.csv")
     # Date range used in the normalize script
     date_rng = pd.date_range(
@@ -27,8 +27,10 @@ def main():
     ).tolist()
     # Metadata for all nodes being used
     nodes_meta = pd.read_csv("selected_nodes.csv")
+    # List of node numbers
     vsns = nodes_meta["vsn"].tolist()
 
+    # Mapping of vsn to its corresponding data file
     vsn_dfs = dict()
     for vsn in vsns:
         tmp = pd.read_csv(f"nodes/node-{vsn}.csv")
@@ -37,20 +39,27 @@ def main():
         )
         vsn_dfs[vsn] = tmp
 
-    i = 0
+    # For each date in the range, add the temperature column
+    i = 0  # Current enumerated temperature in range
     for d in date_rng:
         print(f"Date {d} ... ", end="")
 
         df[f"temp{i}"] = "NaN"
         for vsn in vsns:
+            # Metadata of node
             node_meta = nodes_meta[nodes_meta["vsn"] == vsn]
+            # Data of node
             vsn_df = vsn_dfs[vsn]
+            # Temperature found, as a pd.Series
             temp = vsn_df.loc[vsn_df["date"] == d]["data"]
+            # Add the current node's data to the column
             df.at[df["vsn"] == vsn, f"temp{i}"] = f"{d}: {temp.iloc[-1]}"
+
         i += 1
 
         print("Done")
 
+    # Save data to a csv file
     df.to_csv("aot-data.csv")
 
 
