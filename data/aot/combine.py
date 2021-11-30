@@ -55,7 +55,7 @@ def main():
 
     vsn_dfs = dict()
     for vsn in vsns:
-        vsn_dfs[vsn] = pd.read_csv(f"nodes/vsn-{vsn}.csv")
+        vsn_dfs[vsn] = pd.read_csv(f"nodes/node-{vsn}.csv")
 
     for d in date_rng:
         for vsn in vsns:
