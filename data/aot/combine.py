@@ -4,7 +4,7 @@
 Combine node data into a single csv file.
 
 This csv file will have the following columns:
-    node_id,vsn,lat,lon,temp[i],[...]
+    node_id,vsn,lat,lon,addr,temp[i],[...]
 """
 
 
