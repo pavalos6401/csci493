@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Normalize the given data csv file.
+Filter the given data csv file based on date range.
 
 Pick values at given time intervals (or a closest match).
 
@@ -34,7 +34,7 @@ def parse_args():
     DEFAULT = CHOICES[0]
 
     parser = argparse.ArgumentParser(
-        description="normalize csv to specific time intervals"
+        description="filter csv to specific time intervals"
     )
     parser.add_argument(
         "--data",
@@ -43,7 +43,7 @@ def parse_args():
         required=False,
         choices=CHOICES,
         default=DEFAULT,
-        help=f"data to normalize: {CHOICES}; default: {DEFAULT}",
+        help=f"data to filter: {CHOICES}; default: {DEFAULT}",
     )
     parser.add_argument(
         "--start",
@@ -142,7 +142,7 @@ def main():
         data_df["data.csv"], format="%Y/%m/%d %H:%M:%S"
     )
 
-    print(f"normalizing {args.data} data...")
+    print(f"filtering {args.data} data...")
     for vsn in vsns:
         print(f"Node {vsn}...", end="")
         df = generate_template(args.start, args.end, args.freq)
